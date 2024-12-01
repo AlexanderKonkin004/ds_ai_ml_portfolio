@@ -1,0 +1,393 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-05-20"
+---
+
+#$$$$$$$\  $$\                     $$\               $$\   
+#$$  __$$\ $$ |                    $$ |            $$$$ |  
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\       \_$$ |  
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |        $$ |  
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /         $$ |  
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<          $$ |  
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\       $$$$$$\ 
+#\_______/ \__| \______/  \_______|\__|  \__|      \______|
+                                                                              
+                                                                                                                                 
+ ######                                                             
+ #     #   ##   #####   ##      # #    # #####   ####  #####  ##### 
+ #     #  #  #    #    #  #     # ##  ## #    # #    # #    #   #   
+ #     # #    #   #   #    #    # # ## # #    # #    # #    #   #   
+ #     # ######   #   ######    # #    # #####  #    # #####    #   
+ #     # #    #   #   #    #    # #    # #      #    # #   #    #   
+ ######  #    #   #   #    #    # #    # #       ####  #    #   #   
+                                                                    
+
+```{r}
+library(readxl)
+library(dplyr)
+# Upload crime stat
+crime_statistics <- read_excel("~/0_programming/0_prog/0_HSE_study/колы/project_konkin/Data/csptablesdec21final.xlsx", 
+    sheet = "Table C3")
+#crime_statistics
+```
+
+```{r}
+# Upload elections result stat
+elections_results <- read_excel("~/0_programming/0_prog/0_HSE_study/колы/project_konkin/Data/local_elections_2021_results-2.xlsx", 
+    sheet = "Wards-results")
+#elections_results
+```
+
+```{r}
+# Upload econ stat for moderator variable
+econ_stat <- read_excel("~/0_programming/0_prog/0_HSE_study/колы/project_konkin/Data/regionalgrossdomesticproductgdplocalauthorities.xlsx", 
+    sheet = "Table 11")
+#econ_stat
+```
+
+
+#$$$$$$$\  $$\                     $$\              $$$$$$\  
+#$$  __$$\ $$ |                    $$ |            $$  __$$\ 
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\       \__/  $$ |
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |       $$$$$$  |
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /       $$  ____/ 
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<        $$ |      
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\       $$$$$$$$$\ 
+#\_______/ \__| \______/  \_______|\__|  \__|      \________|
+
+ #######                                                                                                                                         
+ #       # #      ##### #####    ##   ##### #  ####  #    #      ##   #    # #####      ####  #      ######   ##   #    #  ####  # #    #  ####  
+ #       # #        #   #    #  #  #    #   # #    # ##   #     #  #  ##   # #    #    #    # #      #       #  #  ##   # #      # ##   # #    # 
+ #####   # #        #   #    # #    #   #   # #    # # #  #    #    # # #  # #    #    #      #      #####  #    # # #  #  ####  # # #  # #      
+ #       # #        #   #####  ######   #   # #    # #  # #    ###### #  # # #    #    #      #      #      ###### #  # #      # # #  # # #  ### 
+ #       # #        #   #   #  #    #   #   # #    # #   ##    #    # #   ## #    #    #    # #      #      #    # #   ## #    # # #   ## #    # 
+ #       # ######   #   #    # #    #   #   #  ####  #    #    #    # #    # #####      ####  ###### ###### #    # #    #  ####  # #    #  ####  
+
+```{r}
+crime_statistics <- na.omit(crime_statistics)
+```
+ 
+```{r}
+# Get rid of ward info - merge into local authorities
+transformed_elections <- aggregate(cbind(CON,LAB,LD,GREEN,Electorate, `Total votes`) ~ `Local Authority name`, elections_results, sum)
+#transformed_elections
+```
+
+```{r}
+# Create percentage variables
+transformed_elections$CON_percent <- transformed_elections$CON / transformed_elections$`Total votes` * 100
+transformed_elections$LAB_percent <- transformed_elections$LAB / transformed_elections$`Total votes` * 100
+transformed_elections$LD_percent <- transformed_elections$LD / transformed_elections$`Total votes` * 100
+transformed_elections$GREEN_percent <- transformed_elections$GREEN / transformed_elections$`Total votes` * 100
+transformed_elections$Turnout <- transformed_elections$`Total votes` / transformed_elections$Electorate * 100
+#transformed_elections
+```
+
+```{r}
+# Merge into one dataset
+data <- merge(transformed_elections, crime_statistics, by = "Local Authority name")
+#data
+```
+
+```{r}
+# Select only needed variable
+econ_stat <- dplyr::select(econ_stat,`Local Authority name`,`2021`)
+#econ_stat
+```
+
+```{r}
+# Final merge
+data <- merge(data, econ_stat, by = "Local Authority name")
+data <- dplyr::select(data,`Local Authority name`,`CON_percent`,`LAB_percent`,`LD_percent`,`GREEN_percent`,`Theft offences`,`Drug offences`,`Possession of weapons offences`,`2021`)
+attach(data)
+data
+```
+
+#$$$$$$$\  $$\                     $$\              $$$$$$\  
+#$$  __$$\ $$ |                    $$ |            $$ ___$$\ 
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\       \_/   $$ |
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |        $$$$$ / 
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /         \___$$\ 
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<        $$\   $$ |
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\       \$$$$$$  |
+#\_______/ \__| \______/  \_______|\__|  \__|       \______/ 
+                                                            
+ ######                                                                                                                              
+ #     # #    # # #      #####  # #    #  ####     #    # #  ####  #    #   ##   #      # ######   ##   ##### #  ####  #    #  ####  
+ #     # #    # # #      #    # # ##   # #    #    #    # # #      #    #  #  #  #      #     #   #  #    #   # #    # ##   # #      
+ ######  #    # # #      #    # # # #  # #         #    # #  ####  #    # #    # #      #    #   #    #   #   # #    # # #  #  ####  
+ #     # #    # # #      #    # # #  # # #  ###    #    # #      # #    # ###### #      #   #    ######   #   # #    # #  # #      # 
+ #     # #    # # #      #    # # #   ## #    #     #  #  # #    # #    # #    # #      #  #     #    #   #   # #    # #   ## #    # 
+ ######   ####  # ###### #####  # #    #  ####       ##   #  ####   ####  #    # ###### # ###### #    #   #   #  ####  #    #  ####  
+                                                                                                                                     
+Two histograms combined in one line (mfrow()/plot_grid() depending on the way you
+visualize the data) with distribution curves superimposed on them). For this task, the student
+can take any two continuous variables. Each histogram must contain the title, as well as
+captions along the axes;
+
+```{r}
+library(ggplot2)
+lab_dist <- ggplot(data, aes(x=`LAB_percent`)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+ xlab("Labour %") + 
+ ylab("Density") + 
+ ggtitle("Distribution of Labour vote share") 
+con_dist <- ggplot(data, aes(x=`CON_percent`)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#6491C5")+
+ xlab("Conservative %") + 
+ ylab("Density") + 
+ ggtitle("Distribution of Conservative vote share") 
+lab_dist
+con_dist
+```
+
+```{r}
+library(cowplot)
+plot_grid(
+  lab_dist, con_dist,
+  #labels = c('Labour', 'Conservative'),
+  align="hv"
+)
+```
+
+One graph combining 2-5 boxplots. The graph must contain a title, captions on the axes, as
+well as names of the boxplots;
+
+```{r}
+box1 <- ggplot() + 
+  labs (title = "Distribution of share of votes for political parties", x="Party", y="Vote share %")+
+  geom_boxplot(aes(x='Labour percent', y=LAB_percent), fill="hotpink2") + 
+  geom_boxplot(aes(x='Green percent', y=GREEN_percent), fill="green4")  + 
+  geom_boxplot(aes(x='Conservative percent', y=CON_percent), fill="lightseagreen") + 
+  geom_boxplot(aes(x='Liberal percent', y=LD_percent), fill="yellow3") +
+  theme_bw()
+box1
+```
+One scatterplot reflecting the relationship between one dependent variable and one
+independent variable by the means of a regression trend. The plot must have a title and
+captions along the axes;
+
+```{r}
+theft_plot<-ggplot(data) + 
+  aes(x=`Theft offences`, y=CON_percent) +
+  geom_point() +
+  ylab("Conservative vote share")+
+  xlab("Number of theft offences")+
+  ggtitle("Influence of theft offences on conservative vote share")+
+  stat_smooth(method = "lm", se = T, col="blue3")
+  theme_bw()
+drug_plot<-ggplot(data) + 
+  aes(x=`Drug offences`, y=CON_percent) +
+  geom_point() +
+  ylab("Conservative vote share")+
+  xlab("Number of drug offences")+
+  ggtitle("Influence of drug offences on conservative vote share")+
+  stat_smooth(method = "lm", se = T, col="red3")
+  theme_bw()
+drug_plot
+theft_plot
+```
+```{r}
+plot_grid(
+  drug_plot, theft_plot,
+  align="hv"
+)
+```
+
+#$$$$$$$\  $$\                     $$\             $$\   $$\ 
+#$$  __$$\ $$ |                    $$ |            $$ |  $$ |
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\       $$ |  $$ |
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |      $$$$$$$$ |
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /       \_____$$ |
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<              $$ |
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\             $$ |
+#\_______/ \__| \______/  \_______|\__|  \__|            \__|
+
+ ######                                                                                                                                                              
+ #     # ######  ####   ####  #####  # #####  ##### # #    # ######     ####  #####   ##   ##### #  ####  ##### #  ####   ####     #####   ##   #####  #      ###### 
+ #     # #      #      #    # #    # # #    #   #   # #    # #         #        #    #  #    #   # #        #   # #    # #           #    #  #  #    # #      #      
+ #     # #####   ####  #      #    # # #    #   #   # #    # #####      ####    #   #    #   #   #  ####    #   # #       ####       #   #    # #####  #      #####  
+ #     # #           # #      #####  # #####    #   # #    # #              #   #   ######   #   #      #   #   # #           #      #   ###### #    # #      #      
+ #     # #      #    # #    # #   #  # #        #   #  #  #  #         #    #   #   #    #   #   # #    #   #   # #    # #    #      #   #    # #    # #      #      
+ ######  ######  ####   ####  #    # # #        #   #   ##   ######     ####    #   #    #   #   #  ####    #   #  ####   ####       #   #    # #####  ###### ###### 
+ 
+```{r}
+library(stargazer)
+
+descriptive_statistics<- data.frame(`CON_percent`,`LAB_percent`,`Theft offences`,`Drug offences`,`Possession of weapons offences`,`2021`)
+
+stargazer(descriptive_statistics, type="html",
+          title="Descriptive statistics table", 
+          digits=2, 
+          summary.stat=c("sd", "min", "max","median"),
+          out="table_descriptive_statistics.html",
+          covariate.labels=c("Conservative vote share (%)", "Labour vote share (%)","Theft offences","Drug offences", "Possession of weapons offences", "GDP/capita (£)"))
+```
+
+#$$$$$$$\  $$\                     $$\             $$$$$$$\  
+#$$  __$$\ $$ |                    $$ |            $$  ____| 
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\       $$ |      
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |      $$$$$$$\  
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /       \_____$$\ 
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<        $$\   $$ |
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\       \$$$$$$  |
+#\_______/ \__| \______/  \_______|\__|  \__|       \______/ 
+
+
+ #######                                                                                                        
+    #    #    # #####  ###### ######    #####  ######  ####  #####  ######  ####   ####  #  ####  #    #  ####  
+    #    #    # #    # #      #         #    # #      #    # #    # #      #      #      # #    # ##   # #      
+    #    ###### #    # #####  #####     #    # #####  #      #    # #####   ####   ####  # #    # # #  #  ####  
+    #    #    # #####  #      #         #####  #      #  ### #####  #           #      # # #    # #  # #      # 
+    #    #    # #   #  #      #         #   #  #      #    # #   #  #      #    # #    # # #    # #   ## #    # 
+    #    #    # #    # ###### ######    #    # ######  ####  #    # ######  ####   ####  #  ####  #    #  ####
+    
+```{r}
+model1 <- lm(CON_percent ~ `Theft offences`)
+summary(model1)
+```
+
+```{r}
+model2 <- lm(CON_percent ~ `Theft offences` + `Drug offences`)
+summary(model2)
+```
+
+```{r}
+model3 <- lm(CON_percent ~ `Theft offences` + `Drug offences` + `Possession of weapons offences`)
+summary(model3)
+```
+```{r}
+model_interaction <- lm(CON_percent ~ `Theft offences`*`2021`)
+summary(model_interaction)
+```
+
+```{r}
+stargazer(model1, model2, model3,model_interaction, 
+          type="html",
+          model.numbers = FALSE,
+          title="Regression Results",
+          dep.var.labels=c("Conservative vote share"), 
+          covariate.labels=c("Theft offences","Drug offences", "Possession of weapons offences","GDP/capita","Interaction effect"),
+          #omit.stat = c("ser", "f"),
+          out="models_table.html") 
+```
+```{r}
+library(performance)
+compare_performance(model1, model2, model3, model_interaction)
+```
+#$$$$$$$\  $$\                     $$\              $$$$$$\  
+#$$  __$$\ $$ |                    $$ |            $$  __$$\ 
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\       $$ /  \__|
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |      $$$$$$$\  
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /       $$  __$$\ 
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<        $$ /  $$ |
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\        $$$$$$  |
+#\_______/ \__| \______/  \_______|\__|  \__|       \______/ 
+                                                            
+ ######                                           ####### #        #####                                                                       
+ #     # ######  ####  #####    ###### # #####    #     # #       #     #    #####  #   ##    ####  #    #  ####   ####  ##### #  ####   ####  
+ #     # #      #        #      #      #   #      #     # #       #          #    # #  #  #  #    # ##   # #    # #        #   # #    # #      
+ ######  #####   ####    #      #####  #   #      #     # #        #####     #    # # #    # #      # #  # #    #  ####    #   # #       ####  
+ #     # #           #   #      #      #   #      #     # #             #    #    # # ###### #  ### #  # # #    #      #   #   # #           # 
+ #     # #      #    #   #      #      #   #      #     # #       #     #    #    # # #    # #    # #   ## #    # #    #   #   # #    # #    # 
+ ######  ######  ####    #      #      #   #      ####### #######  #####     #####  # #    #  ####  #    #  ####   ####    #   #  ####   ####  
+ 
+
+1. Multicollinearity
+
+```{r}
+library(car)
+vif(model2)
+# smaller than 10 -> no Multicollinearity
+```
+```{r}
+multicollinearity <- vif(model2)
+stargazer(multicollinearity,
+          type="html",
+          model.numbers = FALSE,
+          title="Multicollinearity analysis",
+          #dep.var.labels=c("Conservative vote share"), 
+          #covariate.labels=c("Theft offences","Drug offences", "Possession of weapons offences","GDP/capita","Interaction effect"),
+          #omit.stat = c("ser", "f"),
+          out="multicollinearity.html") 
+```
+
+
+2. Heteroscedasticity
+
+```{r}
+spreadLevelPlot(model2)
+ncvTest(model2)
+
+# p > 0.05 -> heteroscedasticity is not present
+```
+
+3. Outliers
+
+```{r}
+outlierTest(model2)
+# 78 - outlier
+data[78,"Local Authority name"]
+# Knowsley - Liverpool surbub, Labour stronghold
+```
+4. Influential observations
+```{r}
+plot(model2, which = 4, cook.levels = 1)
+abline(h=1, lty=2, col="red")
+data[80,"Local Authority name"]
+data[84,"Local Authority name"]
+```
+
+5. Non-normality of regression residuals distribution
+```{r}
+summary(powerTransform(data$CON_percent)) ## DV, not model
+#Test for lambda(1) indicates that the p-value is < 0.05 therefore we can reject the H0 (that residuals are normally distributed) so they are not normal and the problem exists
+```
+
+
+
+Fixing
+
+```{r}
+#model2_fix<-lm(bcPower(CON_percent, 1.6051)~ `Theft offences` + `Drug offences`, data = data)
+#summary(model2_fix)
+```
+
+6. Non-linearity analysis
+
+```{r}
+boxTidwell(CON_percent ~ `Theft offences` + `Drug offences`, data = data)
+# p-value > 0.05 -> no problem
+```
+
+#$$$$$$$\  $$\                     $$\             $$$$$$$$\ 
+#$$  __$$\ $$ |                    $$ |            \____$$  |
+#$$ |  $$ |$$ | $$$$$$\   $$$$$$$\ $$ |  $$\           $$  / 
+#$$$$$$$\ |$$ |$$  __$$\ $$  _____|$$ | $$  |         $$  /  
+#$$  __$$\ $$ |$$ /  $$ |$$ /      $$$$$$  /         $$  /   
+#$$ |  $$ |$$ |$$ |  $$ |$$ |      $$  _$$<         $$  /    
+#$$$$$$$  |$$ |\$$$$$$  |\$$$$$$$\ $$ | \$$\       $$  /     
+#\_______/ \__| \______/  \_______|\__|  \__|      \__/      
+
+ #     #                                                                                #####  
+ #     # #  ####  #    #   ##   #      # ######   ##   ##### #  ####  #    #  ####     #     # 
+ #     # # #      #    #  #  #  #      #     #   #  #    #   # #    # ##   # #               # 
+ #     # #  ####  #    # #    # #      #    #   #    #   #   # #    # # #  #  ####      #####  
+  #   #  #      # #    # ###### #      #   #    ######   #   # #    # #  # #      #    #       
+   # #   # #    # #    # #    # #      #  #     #    #   #   # #    # #   ## #    #    #       
+    #    #  ####   ####  #    # ###### # ###### #    #   #   #  ####  #    #  ####     ####### 
+                                                                                               
+
+```{r}
+qqPlot(model2, main="Q-Q Plot for non-corrected model")
+```
+
+```{r}
+crPlots(lm(data$CON_percent ~ data$`Theft offences` + data$`Drug offences`))
+```
+```{r}
+#crPlots(lm(bcPower(data$CON_percent, 1.6051) ~ data$`Theft offences` + data$`Drug offences`))
+```
